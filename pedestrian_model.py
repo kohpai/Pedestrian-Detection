@@ -6,14 +6,29 @@ import sys
 import os.path
 
 model_name = None
+data       = None
+labels     = None
+channels   = None
 
 try:
-    model_name = sys.argv[1]
-except IndexError:
-    print("No model name specified")
+    data     = np.load(sys.argv[1])
+    labels   = np.load(sys.argv[2])
+    channels = int(sys.argv[3])
+    try:
+        model_name = sys.argv[4]
+    except IndexError:
+        print("No model name specified")
 
-data   = np.load('train_data-48x96.npy')
-labels = np.load('train_labels-48x96.npy')
+except IndexError:
+    print("Usage: pedestrian_model $data.npy $labels.npy $channels [$model_name]")
+    sys.exit()
+
+validate_portion  = int((len(data)/100)*10)
+validation_data   = data[-validate_portion:]
+validation_labels = labels[-validate_portion:]
+
+data   = data[:-validate_portion]
+labels = labels[:-validate_portion]
 
 height = 96
 width  = 48
@@ -21,15 +36,17 @@ width  = 48
 # ------------------------------------------------------------------------------ #
 
 #  input_layer = tflearn.input_data(shape=[None, height * width])
-input_layer = tflearn.input_data(shape=[None, height, width, 1])
+input_layer = tflearn.input_data(shape=[None, height, width, channels])
 
-conv_pool = tflearn.conv_2d(input_layer, 8, [3, 3], activation='relu')
+conv_pool = tflearn.conv_2d(input_layer, 32, [3, 3], activation='relu')
 conv_pool = tflearn.max_pool_2d(conv_pool, [2, 2])
-conv_pool = tflearn.conv_2d(input_layer, 16, [3, 3], activation='relu')
+conv_pool = tflearn.conv_2d(input_layer, 32, [3, 3], activation='relu')
 conv_pool = tflearn.max_pool_2d(conv_pool, [2, 2])
 
 fc = tflearn.fully_connected(conv_pool, 32, activation='relu')
+fc = tflearn.dropout(fc, 0.95)
 fc = tflearn.fully_connected(fc, 32, activation='relu')
+fc = tflearn.dropout(fc, 0.95)
 
 output_layer = tflearn.fully_connected(fc, 2, activation='softmax')
 
@@ -39,21 +56,22 @@ cross_entropy = tflearn.regression(output_layer)
 
 model = tflearn.DNN(cross_entropy, tensorboard_dir='logs')
 
-if model_name is not None and os.path.isfile(model_name):
+if model_name is not None and os.path.isfile(model_name + ".index"):
     print("Loading the saved weights from ", model_name)
     model.load(model_name)
 
 try:
     #  model.fit(data, labels, n_epoch=10, batch_size=16, show_metric=True)
     model.fit(
-            data.reshape([-1, height, width, 1]),
+            data.reshape([-1, height, width, channels]),
             labels,
-            n_epoch=10,
+            10,
+            (validation_data.reshape([-1, height, width, channels]), validation_labels),
             batch_size=100,
             show_metric=True,
             run_id=None)
 except KeyboardInterrupt:
-    print("Learning process was terminated")
+    print("Training process was terminated")
 
 if model_name is not None:
     print("Saving the weights to ", model_name)
