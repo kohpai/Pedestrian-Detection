@@ -9,18 +9,22 @@ model_name = None
 data       = None
 labels     = None
 channels   = None
+height     = None
+width      = None
 
 try:
     data     = np.load(sys.argv[1])
     labels   = np.load(sys.argv[2])
-    channels = int(sys.argv[3])
+    height   = int(sys.argv[3])
+    width    = int(sys.argv[4])
+    channels = int(sys.argv[5])
     try:
-        model_name = sys.argv[4]
+        model_name = sys.argv[6]
     except IndexError:
         print("No model name specified")
 
 except IndexError:
-    print("Usage: pedestrian_model $data.npy $labels.npy $channels [$model_name]")
+    print("Usage: pedestrian_train $data.npy $labels.npy $height $width $channels [$model_name]")
     sys.exit()
 
 validate_portion  = int((len(data)/100)*10)
@@ -29,9 +33,6 @@ validation_labels = labels[-validate_portion:]
 
 data   = data[:-validate_portion]
 labels = labels[:-validate_portion]
-
-height = 96
-width  = 48
 
 # ------------------------------------------------------------------------------ #
 
