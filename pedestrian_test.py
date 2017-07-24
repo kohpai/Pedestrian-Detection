@@ -3,6 +3,7 @@
 import numpy as np
 import tflearn
 import sys
+import time
 import os.path
 
 model_name = None
@@ -48,4 +49,11 @@ cross_entropy = tflearn.regression(output_layer)
 model = tflearn.DNN(cross_entropy, tensorboard_dir='logs')
 model.load(model_name)
 
+print("-------------------------------------------------------------------------")
+print("Evaluate over %d records of data" % (len(data)))
+
+start_time = time.time()
+
 print("Evaluation score: ", model.evaluate(data.reshape([-1, height, width, channels]), labels))
+print("Elapsed time: %d seconds" % (time.time() - start_time))
+
