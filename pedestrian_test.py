@@ -48,4 +48,4 @@ cross_entropy = tflearn.regression(output_layer)
 model = tflearn.DNN(cross_entropy, tensorboard_dir='logs')
 model.load(model_name)
 
-print("Evaluation score: ", model.evaluate(data, labels))
+print("Evaluation score: ", model.evaluate(data.reshape([-1, height, width, channels]), labels))
