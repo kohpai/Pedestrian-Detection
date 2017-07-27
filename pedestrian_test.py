@@ -27,7 +27,6 @@ except IndexError:
 
 # ------------------------------------------------------------------------------ #
 
-#  input_layer = tflearn.input_data(shape=[None, height * width])
 input_layer = tflearn.input_data(shape=[None, height, width, channels])
 
 conv_pool = tflearn.conv_2d(input_layer, 32, [3, 3], activation='relu')
