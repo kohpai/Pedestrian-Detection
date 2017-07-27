@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 
-def getPyramid(src, scale=2, minSize=(30, 30), skipSrc=True):
+def getPyramid(src, scale=2, minSize=(30, 30), skipSrc=False, gaussian=False):
     if not skipSrc:
         yield src
 
@@ -16,5 +16,8 @@ def getPyramid(src, scale=2, minSize=(30, 30), skipSrc=True):
 
         tmp = cv.resize(tmp, dsize=(dst_width, dst_height), interpolation=cv.INTER_NEAREST)
         #  tmp = cv.pyrDown(tmp, dstsize=(dst_width, dst_height))
+
+        if gaussian:
+            tmp = cv.GaussianBlur(tmp, (3, 3), 0)
 
         yield tmp
